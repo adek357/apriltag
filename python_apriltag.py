@@ -3,6 +3,26 @@ import apriltag
 import argparse
 import cv2
 import time
+import numpy
+
+def get_distance(p, q):
+    """ 
+    Return euclidean distance between points p and q
+    assuming both to have the same number of dimensions
+    """
+    # sum of squared difference between coordinates
+    s_sq_difference = 0
+    for p_i,q_i in zip(p,q):
+        s_sq_difference += (p_i - q_i)**2
+    
+    # take sq root of sum of squared difference
+    distance = s_sq_difference**0.5
+    return distance
+
+
+
+tag_size_cm=11
+robot_xyz=(400,400,0)
 
 #opcje dla modulu apriltag
 options = apriltag.DetectorOptions(families='tag36h11',
@@ -17,10 +37,16 @@ options = apriltag.DetectorOptions(families='tag36h11',
                                  quad_contours=True)
 detector = apriltag.Detector(options)
 
+
+camera_params=(3156.71852, 3129.52243, 359.097908, 239.736909)
+tag_size=0.0762
+
 #stworzenie okienka
 
 cv2.namedWindow("preview")
 video_cap = cv2.VideoCapture(0)
+video_cap.set(3,800)
+video_cap.set(4,800)
 
 #sprawdzenie czy okienko istnieje
 
@@ -63,14 +89,18 @@ while rval:
 	#	cv2.line(frame, ptC, ptD, (0, 255, 0), 2)
 	#	cv2.line(frame, ptD, ptA, (0, 255, 0), 2)
 		# draw the center (x, y)-coordinates of the AprilTag
-	#	(cX, cY) = (int(r.center[0]), int(r.center[1]))
+		(cX, cY) = (int(r.center[0]), int(r.center[1]))
 	#	cv2.circle(frame, (cX, cY), 5, (0, 0, 255), -1)
 		# draw the tag family on the image
 	#	tagFamily = r.tag_family.decode("utf-8")
 	#	cv2.putText(frame, tagFamily, (ptA[0], ptA[1] - 15),
 	#		cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 	#	print("[INFO] tag family: {}".format(tagFamily))
-
+		tag_xyz=(cX,cY,)
+		tag_size_px = numpy.sqrt((ptB[0]-ptA[0])**2+(ptD[0]-ptC[0])**2)
+		print(tag_size_px)
+		distance=get_distance(robot_xyz,tag_xyz)
+		print(distance)
 
 video_cap.release()
 cv2.destroyWindow("preview")
